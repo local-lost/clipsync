@@ -1,3 +1,4 @@
+import time
 import click
 from server import ClipboardSyncServer
 from client import ClipboardSyncClient
@@ -26,9 +27,6 @@ def client(server_ip, port):
     click.echo(f'📡 Running client, connected to {server_ip}:{port}')
     try:
         while True:
-            click.sleep(1)
+            time.sleep(1)
     except KeyboardInterrupt:
         click.echo('🛑 Client shutting down.')
-
-if __name__ == '__main__':
-    cli()
