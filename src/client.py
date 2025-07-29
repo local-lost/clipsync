@@ -22,7 +22,7 @@ class ClipboardSyncClient:
                 s.connect((self.server_ip, self.port))
                 s.sendall(payload)
         except Exception as e:
-            print(f"❌ Failed to send hello to server: {e}")
+            print(f"❌ Failed to connect to the server: {e}")
 
 
     def receive_all(self, conn):
@@ -73,7 +73,7 @@ class ClipboardSyncClient:
                             if clipboard != self.last_clipboard:
                                 self.last_clipboard = clipboard
                                 pyperclip.copy(clipboard)
-                                print(f"📋 Clipboard updated from server: {clipboard}")
+                                print(f"📋 Clipboard updated from server.")
                         except json.JSONDecodeError:
                             print("⚠️ Received invalid JSON on client.")
 

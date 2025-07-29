@@ -63,7 +63,7 @@ class ClipboardSyncServer:
                         self.last_clipboard = clipboard
                         pyperclip.copy(clipboard)
                         self.last_update_ip = peer_ip
-                        print(f"📋 Clipboard updated from {peer_ip}: {clipboard}")
+                        print(f"📋 Clipboard updated by {peer_ip}")
                         self.broadcast_clipboard(clipboard, exclude_device_ip=peer_ip)
             except json.JSONDecodeError:
                 print("⚠️ Received invalid JSON.")
@@ -99,16 +99,15 @@ class ClipboardSyncServer:
 
     def print_ip_table(self):
         self.clear_console()
-        print(f"📋 Last Clipboard: {self.last_clipboard}\n")
         rows = [[ip] for ip in self.ip_list]
         print(tabulate(rows, headers=["Connected Clients"], tablefmt="github"))
         print("\n(Updates every 5 seconds)")
 
     def start(self):
-        print("[bold green]Clipboard Sync Server is running...[/]")
+        print("🟢 Clipboard Sync Server is running.")
         try:
             while True:
                 self.print_ip_table()
                 time.sleep(5)
         except KeyboardInterrupt:
-            print("\n[bold red]Shutting down server...[/]")
+            print("\n🛑 Server shutting down.")
