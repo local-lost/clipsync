@@ -1,7 +1,7 @@
 import time
 import click
-from server import ClipboardSyncServer
-from client import ClipboardSyncClient
+from client import ClipSyncClient
+from ui import ClipSyncUI
 import constants
 
 @click.group()
@@ -14,15 +14,15 @@ def cli():
 @click.option('--port', default=constants.DEFAULT_PORT, help='Port to use')
 def server(host, port):
     """Start the clipboard sync server."""
-    srv = ClipboardSyncServer(host=host, port=port)
-    srv.start()  # blocking method that starts server + periodic display
+
+    ClipSyncUI().run()  # Run the Textual UI for monitoring
 
 @cli.command()
 @click.argument('server_ip')
 @click.option('--port', default=constants.DEFAULT_PORT, help='Server port')
 def client(server_ip, port):
     """Start the clipboard sync client."""
-    cli = ClipboardSyncClient(server_ip=server_ip, port=port)
+    cli = ClipSyncClient(server_ip=server_ip, port=port)
     cli.start()
     click.echo(f'📡 Running client, connected to {server_ip}:{port}')
     try:

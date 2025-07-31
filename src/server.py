@@ -10,7 +10,7 @@ import constants
 
 
 
-class ClipboardSyncServer:
+class ClipSyncServer:
     def __init__(self, host='0.0.0.0', port=constants.DEFAULT_PORT):
         self.host = host
         self.port = port
@@ -19,8 +19,11 @@ class ClipboardSyncServer:
         self.last_update_ip = None
         self.lock = threading.Lock()
 
-        threading.Thread(target=self.start_server, daemon=True).start()
-        threading.Thread(target=self.monitor_clipboard, daemon=True).start()
+        self.on_log = lambda msg: None
+        self.on_update_ips = lambda msg: None
+
+        self.ss = threading.Thread(target=self.start_server, daemon=True)
+        self.mc = threading.Thread(target=self.monitor_clipboard, daemon=True)
 
     def receive_all(self, conn):
         data = b''
@@ -36,7 +39,7 @@ class ClipboardSyncServer:
             s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             s.bind((self.host, self.port))
             s.listen()
-            print(f"📡 Server listening on {self.host}:{self.port}")
+            self.on_log(f"📡 Server listening on {self.host}:{self.port}")
             while True:
                 conn, addr = s.accept()
                 threading.Thread(target=self.handle_client, args=(conn, addr), daemon=True).start()
@@ -55,7 +58,15 @@ class ClipboardSyncServer:
                     with self.lock:
                         if peer_ip not in self.ip_list:
                             self.ip_list.add(peer_ip)
-                            print(f"🔗 Registered client IP: {peer_ip}")
+                            self.on_log(f"🔗 Registered client IP: {peer_ip}")
+                            self.on_update_ips()
+                elif event == "bye":
+                    # Remove client from the list
+                    with self.lock:
+                        if peer_ip in self.ip_list:
+                            self.ip_list.remove(peer_ip)
+                            self.on_log(f"🔗 Unregistered client IP: {peer_ip}")
+                            self.on_update_ips()
                 elif event == "update":
                     # Handle clipboard update (existing code)
                     clipboard = message.get("clipboard", "")
@@ -63,18 +74,21 @@ class ClipboardSyncServer:
                         self.last_clipboard = clipboard
                         pyperclip.copy(clipboard)
                         self.last_update_ip = peer_ip
-                        print(f"📋 Clipboard updated by {peer_ip}")
+                        self.on_log(f"📋 Clipboard updated by {peer_ip}")
                         self.broadcast_clipboard(clipboard, exclude_device_ip=peer_ip)
             except json.JSONDecodeError:
-                print("⚠️ Received invalid JSON.")
+                self.on_log("⚠️ Received invalid JSON.")
 
     def monitor_clipboard(self):
         while True:
             current = pyperclip.paste()
             if current != self.last_clipboard:
+                self.on_log("📋 Clipboard updated by the server.")
                 self.last_clipboard = current
                 self.last_update_ip = None
                 self.broadcast_clipboard(current, exclude_device_ip=self.last_update_ip)
+                self.on_log(f"📡 Clipboard broadcasted.")
+                
             time.sleep(0.2)
 
     def broadcast_clipboard(self, text, exclude_device_ip=None):
@@ -83,6 +97,7 @@ class ClipboardSyncServer:
         }).encode('utf-8')
 
         broadcast_ips = [ip for ip in self.ip_list if ip != exclude_device_ip]
+        inactive_ips = []
 
         with self.lock:
             for ip in broadcast_ips:
@@ -92,22 +107,19 @@ class ClipboardSyncServer:
                         s.connect((ip, self.port))
                         s.sendall(payload)
                 except Exception as e:
-                    print(f"❌ Could not send to {ip}: {e}")
+                    self.on_log(f"❌ Could not send to {ip}: {e}")
+                    inactive_ips.append(ip)
 
-    def clear_console(self):
-        os.system('cls' if os.name == 'nt' else 'clear')
+        with self.lock:
+            self.ip_list = [ip for ip in self.ip_list if ip not in inactive_ips]
 
-    def print_ip_table(self):
-        self.clear_console()
-        rows = [[ip] for ip in self.ip_list]
-        print(tabulate(rows, headers=["Connected Clients"], tablefmt="github"))
-        print("\n(Updates every 5 seconds)")
 
     def start(self):
-        print("🟢 Clipboard Sync Server is running.")
+        self.on_log("🟢 Clipboard Sync Server is running.")
+        self.ss.start()
+        self.mc.start()
         try:
             while True:
-                self.print_ip_table()
                 time.sleep(5)
         except KeyboardInterrupt:
-            print("\n🛑 Server shutting down.")
+            self.on_log("\n🛑 Server shutting down.")
