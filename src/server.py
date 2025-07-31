@@ -3,10 +3,7 @@ import threading
 import json
 import pyperclip
 import time
-import os
-from tabulate import tabulate
 import constants
-
 
 
 
