@@ -42,7 +42,7 @@ sudo apt-get install xclip
 
 ```bash
 python -m venv .venv
-source .venv/bin/activate
+source .venv/bin/activate # or .\venv\Scripts\activate on Windows
 git clone https://github.com/lokallost/clipsync.git
 cd clipsync
 python -m pip install .
