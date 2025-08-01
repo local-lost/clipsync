@@ -1,8 +1,15 @@
 # ✂️ ClipSync
 
 **ClipSync** is a lightweight, python-based cross-platform clipboard synchronization tool that allows multiple devices to share clipboard contents seamlessly over a network.
-As a cyber-threat researcher, I needed a mechanism to sync clipboard of multiple devices during research.
-After struggling with overly complex solution for a simple problem, I decided to build my own.
+
+---
+
+## 💡 Motivation
+
+As a cyber-threat researcher, I often need to synchronize the clipboards of multiple machines during investigations and research.  
+After struggling with overly complex and bloated solutions for such a simple task, I decided to build my own lightweight, no-fuss tool — **ClipSync**.
+
+---
 
 ## 🚀 Features
 
@@ -36,7 +43,7 @@ sudo apt-get install xclip
 ```bash
 python -m venv .venv
 source .venv/bin/activate
-git clone https://github.com/yourusername/clipsync.git
+git clone https://github.com/lokallost/clipsync.git
 cd clipsync
 python -m pip install .
 ```
@@ -68,7 +75,7 @@ Once the client is connected to the server, the clipboard of the client is synce
 > Contributions to the clipsync project are always welcome
 
 ```bash
-git clone https://github.com/yourusername/clipsync.git
+git clone https://github.com/lokallost/clipsync.git
 cd clipsync
 python -m venv venv
 source venv/bin/activate  # or .\venv\Scripts\activate on Windows
